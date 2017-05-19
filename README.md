@@ -1,6 +1,8 @@
 # Hybrid-CallGraph
 Merge the callgraphs generated from:
+  
   Dynamic Analysis https://github.com/zyqu/Dynamic-CallGraph-Generator-Android
+  
   Static Analysis https://github.com/zyqu/FlowDroid-CallGraph
 
 The output is the complete call graph. 
