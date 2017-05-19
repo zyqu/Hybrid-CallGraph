@@ -62,6 +62,41 @@ def smaliSignature(sig):
 	#print "%s -> %s"%(sig, res)
 	return res
 
+def getSize(CG):
+	numNode = len(CG)
+	numEdge = 0
+	for key in CG:
+		numEdge += len(CG[key])
+	return [numNode, numEdge]
+
+def merge(mergedCG, dynamicCG):
+	addedNode = 0
+	addedEdge = 0
+	for node in dynamicCG:
+		if node in mergedCG:
+			for edge in dynamicCG[node]:
+				if edge not in mergedCG[node]:
+					mergedCG[node].add(edge)
+					addedEdge += 1
+					if edge not in mergedCG:
+						mergedCG[edge] = set(dynamicCG[edge])
+						addedNode += 1
+						addedEdge += len(mergedCG[edge])
+		else:
+			mergedCG[node] = set(dynamicCG[node])
+			addedNode += 1
+			addedEdge += len(mergedCG[node])
+
+	for node in mergedCG:
+		newSet = set(mergedCG[node])
+		for edge in mergedCG[node]:
+
+			if edge not in mergedCG:
+				newSet.remove(edge)
+				addedEdge -= 1
+		mergedCG[node] = newSet
+
+	return [addedNode, addedEdge]
 
 def graphParse2smali(origGraph):
 	newGraph = {}
@@ -79,7 +114,7 @@ if __name__=="__main__":
 		sys.exit(-1)
 	else:
 		staticCGPath = sys.argv[1]
-		dynamicCGPath = sys.argv[2]
+		dynamicCGDir = sys.argv[2]
 
 		outputpath = "hybrid-cfg-%s"%(staticCGPath.replace("static-cfg-", ""))
 
@@ -89,4 +124,33 @@ if __name__=="__main__":
 
 		with open(staticCGPath, 'r') as fobj:
 			staticCG = graphParse2smali(json.loads(fobj.read()))
+
+		mergedCG = staticCG
+		
+		if not os.path.isdir(dynamicCGDir):
+			print "dir not exists: %s"%dynamicCGDir
+			sys.exit(-1)
+
+		addedNode = 0
+		addedEdge = 0
+		size = getSize(mergedCG)
+		print "Original num nodes %s, Original num edges %s"%(size[0], size[1])
+
+		for dynamCGName in os.listdir(dynamicCGDir):
+			dynamCGPath = os.path.join(dynamicCGDir, dynamCGName)
+			with open(dynamCGPath, 'r') as fobj:
+				print "Adding %s"%dynamCGPath
+				dynamCG = json.loads(fobj.read())
+				res = merge(mergedCG, dynamCG)
+				addedNode += res[0]
+				addedEdge += res[1]
+
+		for key in mergedCG:
+			mergedCG[key] = list(mergedCG[key])
+		with open(outputpath, 'w') as fobj:
+			fobj.write(json.dumps(mergedCG))
+		
+		print "Num nodes added: %s, num edges added %s"%(addedNode, addedEdge)
+		size = getSize(mergedCG)
+		print "Final num nodes %s, Final num edges %s"%(size[0], size[1])
 			
