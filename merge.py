@@ -1,7 +1,9 @@
 #!/usr/bin/python
 
 import json, os, sys
+#complete the call graph based on the static one, and merged with each sub-graph from dynamic analysis
 
+#helper function: java method signature (static from FlowDroid) converted to smali method signature (dynamic)
 def smaliType(s):
 	s = s.strip()
 	if s.endswith("[]"):
@@ -28,6 +30,7 @@ def smaliType(s):
 		else:
 			return "L%s;"%(s.replace(".", "/"))
 
+#get the smali method signature
 def smaliSignature(sig):
 	sig = sig.strip()
 
@@ -62,6 +65,7 @@ def smaliSignature(sig):
 	#print "%s -> %s"%(sig, res)
 	return res
 
+#get the size of call graph
 def getSize(CG):
 	numNode = len(CG)
 	numEdge = 0
@@ -69,6 +73,7 @@ def getSize(CG):
 		numEdge += len(CG[key])
 	return [numNode, numEdge]
 
+#merge function, add edges first and then add node
 def merge(mergedCG, dynamicCG):
 	addedNode = 0
 	addedEdge = 0
@@ -98,6 +103,7 @@ def merge(mergedCG, dynamicCG):
 
 	return [addedNode, addedEdge]
 
+#convert call graph format from Java to smali
 def graphParse2smali(origGraph):
 	newGraph = {}
 	for key in origGraph:
