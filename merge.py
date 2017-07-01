@@ -122,7 +122,8 @@ if __name__=="__main__":
 		staticCGPath = sys.argv[1]
 		dynamicCGDir = sys.argv[2]
 
-		outputpath = "hybrid-cfg-%s"%(staticCGPath.replace("static-cfg-", ""))
+		staticCGName = os.path.basename(staticCGPath)
+		outputpath = "hybrid-cfg-%s"%(staticCGName.replace("static-cfg-", ""))
 
 		if not os.path.exists(staticCGPath):
 			print "File not exist: %s"%staticCGPath
